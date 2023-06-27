@@ -2,7 +2,7 @@
 
 Nous allons manipuler les websokets avec React & Node.js.
 
-Nous utilisons le pacquage [socket.io](https://socket.io/) qui fait très bien le travail !
+Nous utilisons le package [socket.io](https://socket.io/) qui fait très bien le travail !
 
 ## Mais comment ça marche ?
 
@@ -23,7 +23,7 @@ Nous allons utiliser un paquet natif de nodejs qui est `http` :
 ```js
 const express = require("express");
 // pourquoi http ici ? Car nous allons l'utiliser dans la création de notre server
-// qui va permettre de réutiliser le serveur avec socket.io 
+// qui va permettre de réutiliser le serveur avec socket.io
 // avec la même instance de serveur HTTP !
 const http = require("http");
 const app = express();
@@ -43,21 +43,20 @@ const io = require("socket.io")(server);
 // io.on permet de lister les événements qui se passent dans le serveur
 // Dans notre cas, nous allons lister l'événement `connection`
 io.on("connection", (socket) => {
-    // Je récupère l'id du socket que je définis en tant que mon user.
-    console.log("New user : ", socket.id);
+  // Je récupère l'id du socket que je définis en tant que mon user.
+  console.log("New user : ", socket.id);
 
-    // Socket.on, comme pour io, permet de lister les événements qui se passent côté client
-    socket.on("sendMessage", (data) => {
-        // io.emit permet d'envoyer un message à tous les clients connectés, en passant comme argument `data`
-        io.emit("newMessage", data);
-    });
+  // Socket.on, comme pour io, permet de lister les événements qui se passent côté client
+  socket.on("sendMessage", (data) => {
+    // io.emit permet d'envoyer un message à tous les clients connectés, en passant comme argument `data`
+    io.emit("newMessage", data);
+  });
 
-    // Permet de déconnecter un client
-    socket.on("disconnect", () => {
-        console.log("user disconnected: ", socket.id);
-    });
+  // Permet de déconnecter un client
+  socket.on("disconnect", () => {
+    console.log("user disconnected: ", socket.id);
+  });
 });
-
 ```
 
 <details>
@@ -97,6 +96,7 @@ server.listen(port, (err) => {
   console.log(`server is listening on port ${port}`);
 });
 ```
+
 </details>
 
 ## 🖥 Frontend
@@ -120,23 +120,23 @@ On va créer un socket qui va se connecter au serveur.
 
 ```js
 const ENDPOINT = "URL_BACKEND";
- // OnMount
-  useEffect(() => {
-    const socket = io(ENDPOINT);
-    
-    setSocket(socket);
+// OnMount
+useEffect(() => {
+  const socket = io(ENDPOINT);
 
-    // https://socket.io/docs/v4/client-socket-instance/#connect
-      // Cet événement est déclenché par l'instance Socket lors de la connexion et de la reconnexion.
-      socket.on("connect", () => {
-      setCurrentUser(socket.id);
-    });
+  setSocket(socket);
 
-    return () => {
-      socket.emit("disconnectUser", socket.id);
-      socket.off();
-    };
-  }, []);
+  // https://socket.io/docs/v4/client-socket-instance/#connect
+  // Cet événement est déclenché par l'instance Socket lors de la connexion et de la reconnexion.
+  socket.on("connect", () => {
+    setCurrentUser(socket.id);
+  });
+
+  return () => {
+    socket.emit("disconnectUser", socket.id);
+    socket.off();
+  };
+}, []);
 ```
 
 Mais pour mettre à jour ?
@@ -144,15 +144,14 @@ Mais pour mettre à jour ?
 Nous allons devoir utiliser `useEffect` pour mettre à jour notre state.
 
 ```js
-  // OnUpdate
-  useEffect(() => {
-    if (socket) {
-      socket.on("newMessage", (message) => {
-        setMessageList([...messageList, message]);
-      });
-    }
-  }, [messageList, socket]);
-
+// OnUpdate
+useEffect(() => {
+  if (socket) {
+    socket.on("newMessage", (message) => {
+      setMessageList([...messageList, message]);
+    });
+  }
+}, [messageList, socket]);
 ```
 
 Et pour envoyer un message ?
@@ -160,13 +159,13 @@ Et pour envoyer un message ?
 ```js
 // OnSubmit
 const handleSubmit = (e) => {
-    e.preventDefault();
-    socket.emit("sendMessage", {
-        author: nickName,
-        text: newMessageText,
-        id: currentUser,
-    });
-    setNewMessageText("");
+  e.preventDefault();
+  socket.emit("sendMessage", {
+    author: nickName,
+    text: newMessageText,
+    id: currentUser,
+  });
+  setNewMessageText("");
 };
 ```
 
@@ -266,6 +265,5 @@ export default App;
 ```
 
 </details>
-
 
 # Et voilà !

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
 import "./App.css";
 
 function App() {
@@ -13,23 +14,41 @@ function App() {
    */
   const [nickName, setNickName] = useState("");
   const [newMessageText, setNewMessageText] = useState("");
-  const [socket, setSocket] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [socket, setSocket] = useState(null); // Passage en useRef
+  const currentUser = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     //!TO DO: submit message to server
+    socket.emit("sendMessage", {
+      author: nickName,
+      text: newMessageText,
+      id: currentUser.current,
+    });
   };
 
-  // Au montage de la page
+  const ENDPOINT = "http://localhost:5050";
+  // OnMount
   useEffect(() => {
-    //!TO DO création de la connexion avec le serveur
-  }, []);
+    const socket = io(ENDPOINT);
 
-  // Mise à jour de la liste des messages
-  useEffect(() => {
-    //!TO DO: récupération des messages du serveur
-  }, [messageList, socket]);
+    setSocket(socket);
+
+    // https://socket.io/docs/v4/client-socket-instance/#connect
+    // Cet événement est déclenché par l'instance Socket lors de la connexion et de la reconnexion.
+    socket.on("connect", () => {
+      currentUser.current = socket.id;
+    });
+
+    socket.on("newMessage", (message) => {
+      setMessageList((oldMessageList) => [...oldMessageList, message]);
+    });
+
+    return () => {
+      socket.emit("disconnectUser", socket.id);
+      socket.off();
+    };
+  }, []);
 
   return (
     <div className="App">
@@ -38,7 +57,9 @@ function App() {
         return (
           <p
             key={id}
-            className={message.id === currentUser ? "my-message" : "message"}
+            className={
+              message.id === currentUser.current ? "my-message" : "message"
+            }
           >
             <strong>{message.author}</strong>: {message.text}
           </p>
